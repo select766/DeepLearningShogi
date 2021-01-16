@@ -10,6 +10,7 @@
 #include "UctSearch.h"
 #include "Message.h"
 #include "dfpn.h"
+#include "external_eval.h"
 
 #include <signal.h>
 
@@ -35,6 +36,7 @@ void sigint_handler(int signum)
 }
 
 int main(int argc, char* argv[]) {
+	ExternalEval::wsa_startup();
 	initTable();
 	Position::initZobrist();
 	//HuffmanCodedPos::init();

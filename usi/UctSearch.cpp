@@ -39,6 +39,7 @@
 #endif
 
 #include "cppshogi.h"
+#include "external_eval.h"
 
 using namespace std;
 
@@ -270,6 +271,8 @@ public:
 		checkCudaErrors(cudaHostAlloc((void**)&y2, policy_value_batch_maxsize * sizeof(DType), cudaHostAllocPortable));
 #endif
 		policy_value_batch = new batch_element_t[policy_value_batch_maxsize];
+		external_eval = new ExternalEval();
+		pos_sfen_batch.resize(policy_value_batch_maxsize);
 #ifdef MAKE_BOOK
 		policy_value_book_key = new Key[policy_value_batch_maxsize];
 #endif
@@ -292,6 +295,7 @@ public:
 		checkCudaErrors(cudaFreeHost(y2));
 #endif
 		delete[] policy_value_batch;
+		delete external_eval;
 	}
 
 	void Run() {
@@ -390,6 +394,8 @@ private:
 	DType* y1;
 	DType* y2;
 	batch_element_t* policy_value_batch;
+	ExternalEval* external_eval;
+	vector<std::string> pos_sfen_batch;
 #ifdef MAKE_BOOK
 	Key* policy_value_book_key;
 #endif
@@ -930,6 +936,7 @@ UCTSearcher::QueuingNode(const Position *pos, uct_node_t* node, float* value_win
 
 	make_input_features(*pos, &features1[current_policy_value_batch_index], &features2[current_policy_value_batch_index]);
 	policy_value_batch[current_policy_value_batch_index] = { node, pos->turn(), value_win };
+	pos_sfen_batch[current_policy_value_batch_index] = pos->toSFEN();
 #ifdef MAKE_BOOK
 	policy_value_book_key[current_policy_value_batch_index] = Book::bookKey(*pos);
 #endif
@@ -1436,9 +1443,14 @@ void UCTSearcher::EvalNode() {
 		return;
 
 	const int policy_value_batch_size = current_policy_value_batch_index;
+	const DType policy_blend_ratio = 0.1;
+	const DType value_blend_ratio = 0.1;
 
 	// predict
+	external_eval->send_sfens(pos_sfen_batch, policy_value_batch_size);
 	grp->nn_forward(policy_value_batch_size, features1, features2, y1, y2);
+	auto external_eval_result_ptr = external_eval->receive_result(policy_value_batch_size);
+	auto external_eval_result = external_eval_result_ptr.get();
 
 	const DType(*logits)[MAX_MOVE_LABEL_NUM * SquareNum] = reinterpret_cast<DType(*)[MAX_MOVE_LABEL_NUM * SquareNum]>(y1);
 	const DType *value = y2;
@@ -1463,11 +1475,24 @@ void UCTSearcher::EvalNode() {
 		// Boltzmann distribution
 		softmax_temperature_with_normalize(legal_move_probabilities);
 
+		std::vector<float> external_policy;
+		external_policy.reserve(child_num);
 		for (int j = 0; j < child_num; j++) {
-			uct_child[j].nnrate = legal_move_probabilities[j];
+			const Move move = uct_child[j].move;
+			const auto move_usi = move.toUSI();
+			const float v = move_usi.compare(external_eval_result[i].move_usi) == 0 ? policy_blend_ratio : 0.0;
+			external_policy.emplace_back(v);
 		}
 
-		*policy_value_batch[i].value_win = *value;
+		for (int j = 0; j < child_num; j++) {
+			uct_child[j].nnrate = legal_move_probabilities[j] * ((DType)1.0 - policy_blend_ratio) + external_policy[j];
+		}
+
+		int external_value_cp = atoi(external_eval_result[i].value_num);
+		DType external_value = (tanh(((DType)external_value_cp) / (DType)1200) + (DType)1.0) * (DType)0.5;//cpを600で割ってsigmoid
+		DType blended_value = *value * ((DType)1.0 - value_blend_ratio) + external_value * value_blend_ratio;
+
+		*policy_value_batch[i].value_win = blended_value;
 
 #ifdef MAKE_BOOK
 		// 定跡作成時は、事前確率に定跡の遷移確率も使用する
