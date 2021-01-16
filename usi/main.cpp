@@ -185,6 +185,9 @@ void MySearcher::doUSICommandLoop(int argc, char* argv[]) {
 			// PonderingMode
 			SetPonderingMode(options["USI_Ponder"] && !options["Stochastic_Ponder"]);
 
+			blend_ratio_policy = options["Blend_Ratio_Policy"] / 100.0f;
+			blend_ratio_value = options["Blend_Ratio_Value"] / 100.0f;
+
 			std::cout << "readyok" << std::endl;
 		}
 		else if (token == "setoption") setOption(ssCmd);

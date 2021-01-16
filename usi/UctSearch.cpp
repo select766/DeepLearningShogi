@@ -135,6 +135,9 @@ float draw_value_white = 0.5f;
 // 引き分けとする手数（この手数に達した場合引き分けとする）
 int draw_ply = INT_MAX;
 
+// ブレンドパラメータ
+float blend_ratio_policy = 0.0f;
+float blend_ratio_value = 0.0f;
 
 ////////////
 //  関数  //
@@ -1443,8 +1446,6 @@ void UCTSearcher::EvalNode() {
 		return;
 
 	const int policy_value_batch_size = current_policy_value_batch_index;
-	const DType policy_blend_ratio = 0.1;
-	const DType value_blend_ratio = 0.1;
 
 	// predict
 	external_eval->send_sfens(pos_sfen_batch, policy_value_batch_size);
@@ -1480,17 +1481,17 @@ void UCTSearcher::EvalNode() {
 		for (int j = 0; j < child_num; j++) {
 			const Move move = uct_child[j].move;
 			const auto move_usi = move.toUSI();
-			const float v = move_usi.compare(external_eval_result[i].move_usi) == 0 ? policy_blend_ratio : 0.0;
+			const float v = move_usi.compare(external_eval_result[i].move_usi) == 0 ? blend_ratio_policy : 0.0;
 			external_policy.emplace_back(v);
 		}
 
 		for (int j = 0; j < child_num; j++) {
-			uct_child[j].nnrate = legal_move_probabilities[j] * ((DType)1.0 - policy_blend_ratio) + external_policy[j];
+			uct_child[j].nnrate = legal_move_probabilities[j] * ((DType)1.0 - blend_ratio_policy) + external_policy[j];
 		}
 
 		int external_value_cp = atoi(external_eval_result[i].value_num);
 		DType external_value = (tanh(((DType)external_value_cp) / (DType)1200) + (DType)1.0) * (DType)0.5;//cpを600で割ってsigmoid
-		DType blended_value = *value * ((DType)1.0 - value_blend_ratio) + external_value * value_blend_ratio;
+		DType blended_value = *value * ((DType)1.0 - blend_ratio_value) + external_value * blend_ratio_value;
 
 		*policy_value_batch[i].value_win = blended_value;
 

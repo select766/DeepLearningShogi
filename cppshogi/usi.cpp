@@ -123,6 +123,8 @@ void OptionsMap::init(Searcher* s) {
     (*this)["DfPn_Hash"]                   = USIOption(2048, 64, 4096); // DfPnハッシュサイズ
     (*this)["DfPn_Min_Search_Millisecs"]   = USIOption(300, 0, INT_MAX);
     (*this)["ReuseSubtree"]                = USIOption(true);
+    (*this)["Blend_Ratio_Policy"]          = USIOption(0, 0, 100); // 外部エンジンのpolicyブレンド比率%(0ならDNNのみ)
+    (*this)["Blend_Ratio_Value"]           = USIOption(0, 0, 100); // 外部エンジンのvalueブレンド比率%(0ならDNNのみ)
 #ifdef MAKE_BOOK
     (*this)["PV_Interval"]                 = USIOption(0, 0, INT_MAX);
     (*this)["Save_Book_Interval"]          = USIOption(100, 0, INT_MAX);
