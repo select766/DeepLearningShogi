@@ -359,6 +359,7 @@ void go_uct(Position& pos, std::istringstream& ssCmd, const std::string& posCmd,
 			return;
 		}
 	}
+	external_perf_print();
 
 	if (move == Move::moveNone()) {
 		std::cout << "bestmove resign" << std::endl;

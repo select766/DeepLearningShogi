@@ -940,6 +940,7 @@ UCTSearcher::QueuingNode(const Position *pos, uct_node_t* node, float* value_win
 	make_input_features(*pos, &features1[current_policy_value_batch_index], &features2[current_policy_value_batch_index]);
 	policy_value_batch[current_policy_value_batch_index] = { node, pos->turn(), value_win };
 	pos_sfen_batch[current_policy_value_batch_index] = pos->toSFEN();
+	external_eval->send_sfen(pos_sfen_batch[current_policy_value_batch_index]);
 #ifdef MAKE_BOOK
 	policy_value_book_key[current_policy_value_batch_index] = Book::bookKey(*pos);
 #endif
@@ -1441,6 +1442,7 @@ void SetModelPath(const std::string path[max_gpu])
 	}
 }
 
+
 void UCTSearcher::EvalNode() {
 	if (current_policy_value_batch_index == 0)
 		return;
@@ -1448,9 +1450,11 @@ void UCTSearcher::EvalNode() {
 	const int policy_value_batch_size = current_policy_value_batch_index;
 
 	// predict
-	external_eval->send_sfens(pos_sfen_batch, policy_value_batch_size);
+	//external_eval->send_sfens(pos_sfen_batch, policy_value_batch_size);
 	grp->nn_forward(policy_value_batch_size, features1, features2, y1, y2);
+	external_perf_start();
 	auto external_eval_result_ptr = external_eval->receive_result(policy_value_batch_size);
+	external_perf_end();
 	auto external_eval_result = external_eval_result_ptr.get();
 
 	const DType(*logits)[MAX_MOVE_LABEL_NUM * SquareNum] = reinterpret_cast<DType(*)[MAX_MOVE_LABEL_NUM * SquareNum]>(y1);

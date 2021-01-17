@@ -16,6 +16,11 @@
 #define BOOL int
 #endif
 
+// #define EXTERNAL_PERF_COUNT
+void external_perf_start();
+void external_perf_end();
+void external_perf_print();
+
 struct ExternalEvalResult {
 	// ç≈ëPéËÇÃUSIï\ãL
 	char move_usi[8];
@@ -28,6 +33,7 @@ public:
 	ExternalEval(const char* host = "127.0.0.1", int port = 8765);
 	~ExternalEval();
 	void send_sfens(std::vector<std::string>& sfens, size_t len);
+	void send_sfen(std::string& sfen);
 	std::shared_ptr<ExternalEvalResult[]> receive_result(size_t len);
 	bool ok() const;
 	static bool wsa_startup();

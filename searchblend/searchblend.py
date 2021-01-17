@@ -47,6 +47,9 @@ def process_connection(conn: socket.socket, address):
             sfen = pending[:RECV_PACKET_SIZE].rstrip(b"\0").decode("ascii")# "sfen lnsgkgsnl/1r5b1/pppppp1pp/6p2/9/4P4/PPPP1PPPP/1B5R1/LNSGKGSNL b - 3"
             pending = pending[RECV_PACKET_SIZE:]
             # print(sfen)
+            # パフォーマンス測定用ダミー返信
+            # result_concat += b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+            # continue
             engine.position(sfen=sfen)
             latest_cp = 0
             bestmove, _ponder = engine.go(byoyomi=100, listener=listen_info)
