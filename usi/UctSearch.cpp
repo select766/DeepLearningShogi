@@ -139,6 +139,10 @@ int draw_ply = INT_MAX;
 float blend_ratio_policy = 0.0f;
 float blend_ratio_value = 0.0f;
 
+// 外部評価プロセス接続情報
+string external_eval_host;
+int external_eval_port;
+
 ////////////
 //  関数  //
 ////////////
@@ -274,7 +278,8 @@ public:
 		checkCudaErrors(cudaHostAlloc((void**)&y2, policy_value_batch_maxsize * sizeof(DType), cudaHostAllocPortable));
 #endif
 		policy_value_batch = new batch_element_t[policy_value_batch_maxsize];
-		external_eval = new ExternalEval();
+		std::cout << "info string exev" << std::endl;
+		external_eval = new ExternalEval(external_eval_host.c_str(), external_eval_port);
 		pos_sfen_batch.resize(policy_value_batch_maxsize);
 #ifdef MAKE_BOOK
 		policy_value_book_key = new Key[policy_value_batch_maxsize];

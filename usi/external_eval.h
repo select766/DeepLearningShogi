@@ -30,7 +30,7 @@ struct ExternalEvalResult {
 
 class ExternalEval {
 public:
-	ExternalEval(const char* host = "127.0.0.1", int port = 8765);
+	ExternalEval(const char* host, int port);
 	~ExternalEval();
 	void send_sfens(std::vector<std::string>& sfens, size_t len);
 	void send_sfen(std::string& sfen);

@@ -90,6 +90,8 @@ def main():
     parser.add_argument("engine")
     parser.add_argument("--options", default="")
     parser.add_argument("--pool", type=int, default=1)
+    parser.add_argument("--host", default=LISTEN_HOST)
+    parser.add_argument("--port", default=LISTEN_PORT, type=int)
     args = parser.parse_args()
     engine_path = args.engine
     for entry in args.options.split(","):
@@ -98,7 +100,7 @@ def main():
         th = threading.Thread(target=go_pool)
         th.start()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind((LISTEN_HOST, LISTEN_PORT))
+        sock.bind((args.host, args.port))
         sock.listen()
         print("listening")
         next_connection_idx = 0

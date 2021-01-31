@@ -74,12 +74,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("engine")
     parser.add_argument("--options", default="")
+    parser.add_argument("--host", default=LISTEN_HOST)
+    parser.add_argument("--port", default=LISTEN_PORT, type=int)
     args = parser.parse_args()
     engine_path = args.engine
     for entry in args.options.split(","):
         engine_options.append(entry.split(":"))
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind((LISTEN_HOST, LISTEN_PORT))
+        sock.bind((args.host, args.port))
         sock.listen()
         print("listening")
         while True:

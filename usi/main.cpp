@@ -112,6 +112,12 @@ void MySearcher::doUSICommandLoop(int argc, char* argv[]) {
 			static bool initialized = false;
 			if (!initialized) {
 				// 各種初期化
+				std::cout << "info string setting1" << std::endl;
+				blend_ratio_policy = options["Blend_Ratio_Policy"] / 100.0f;
+				blend_ratio_value = options["Blend_Ratio_Value"] / 100.0f;
+				external_eval_host = (std::string)options["External_Eval_Host"];
+				external_eval_port = options["External_Eval_Port"];
+
 				InitializeUctSearch(options["UCT_NodeLimit"]);
 				const std::string model_paths[max_gpu] = { options["DNN_Model"], options["DNN_Model2"], options["DNN_Model3"], options["DNN_Model4"], options["DNN_Model5"], options["DNN_Model6"], options["DNN_Model7"], options["DNN_Model8"] };
 				// モデルファイル存在チェック
@@ -184,9 +190,6 @@ void MySearcher::doUSICommandLoop(int argc, char* argv[]) {
 
 			// PonderingMode
 			SetPonderingMode(options["USI_Ponder"] && !options["Stochastic_Ponder"]);
-
-			blend_ratio_policy = options["Blend_Ratio_Policy"] / 100.0f;
-			blend_ratio_value = options["Blend_Ratio_Value"] / 100.0f;
 
 			std::cout << "readyok" << std::endl;
 		}

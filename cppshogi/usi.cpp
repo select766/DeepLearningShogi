@@ -125,6 +125,8 @@ void OptionsMap::init(Searcher* s) {
     (*this)["ReuseSubtree"]                = USIOption(true);
     (*this)["Blend_Ratio_Policy"]          = USIOption(0, 0, 100); // 外部エンジンのpolicyブレンド比率%(0ならDNNのみ)
     (*this)["Blend_Ratio_Value"]           = USIOption(0, 0, 100); // 外部エンジンのvalueブレンド比率%(0ならDNNのみ)
+    (*this)["External_Eval_Host"]          = USIOption("127.0.0.1"); // 外部エンジンのTCPホスト(IPv4アドレスのみ、DNS非対応)
+    (*this)["External_Eval_Port"]          = USIOption(8765, 1, 65535); // 外部エンジンのTCPポート番号
 #ifdef MAKE_BOOK
     (*this)["PV_Interval"]                 = USIOption(0, 0, INT_MAX);
     (*this)["Save_Book_Interval"]          = USIOption(100, 0, INT_MAX);

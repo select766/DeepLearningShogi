@@ -25,6 +25,8 @@ extern float c_base_root;
 extern float c_fpu_reduction_root;
 extern float blend_ratio_policy;
 extern float blend_ratio_value;
+extern std::string external_eval_host;
+extern int external_eval_port;
 
 struct po_info_t {
 	int halt;  // 探索を打ち切る回数
